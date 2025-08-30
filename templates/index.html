@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="hero">
+    <div class="container">
+        <div class="hero-content">
+            <h1>أسلوب Old Money الكلاسيكي</h1>
+            <p>اكتشف مجموعة الملابس الفاخرة ذات الطراز الأنيق الذي لا ينتهي</p>
+            <a href="{{ url_for('shop') }}" class="btn">تصفح المجموعة</a>
+        </div>
+    </div>
+</section>
+
+<section class="container">
+    <div class="section-title">
+        <h2>منتجاتنا المميزة</h2>
+    </div>
+
+    <div class="products-grid">
+        {% for product in products %}
+        <div class="product-card">
+            <div class="product-image">
+                <img src="{{ url_for('static', filename='uploads/' + product.image) }}" alt="{{ product.name }}">
+            </div>
+            <div class="product-info">
+                <h3>{{ product.name }}</h3>
+                <div class="product-price">
+                    <span class="current-price">{{ product.price }} درهم</span>
+                    {% if product.old_price %}
+                    <span class="old-price">{{ product.old_price }} درهم</span>
+                    {% endif %}
+                </div>
+                <a href="{{ url_for('product_detail', product_id=product.id) }}" class="btn btn-outline">عرض التفاصيل</a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div style="text-align: center; margin-bottom: 60px;">
+        <a href="{{ url_for('shop') }}" class="btn">عرض جميع المنتجات</a>
+    </div>
+</section>
+
+<section style="background-color: #f8f9fa; padding: 60px 0;">
+    <div class="container">
+        <div class="section-title">
+            <h2>لماذا تختار Old Money؟</h2>
+        </div>
+        
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 30px; text-align: center;">
+            <div>
+                <h3>جودة عالية</h3>
+                <p>نستخدم أفضل المواد والخامات لضمان الراحة والمتانة</p>
+            </div>
+            <div>
+                <h3>تصميم كلاسيكي</h3>
+                <p>أسلوب لا يتأثر بالموضة العابرة ويناسب جميع المناسبات</p>
+            </div>
+            <div>
+                <h3>توصيل سريع</h3>
+                <p>توصيل لجميع أنحاء المملكة خلال 2-3 أيام عمل</p>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
