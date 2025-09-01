@@ -5,14 +5,13 @@ from werkzeug.utils import secure_filename
 from functools import wraps
 import os
 from datetime import datetime
-from urllib.parse import quote
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev_key_Change_in_production')
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'your_secret_key_here')
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///database.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['UPLOAD_FOLDER'] = 'static/uploads'
-app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
 
 # إنشاء المجلدات إذا لم تكن موجودة
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
@@ -68,17 +67,6 @@ def admin_required(f):
             return redirect(url_for('index'))
         return f(*args, **kwargs)
     return decorated_function
-
-# دالة لإنشاء رابط واتساب
-def get_whatsapp_link(product_name, product_price):
-    phone_number = "212632256568"
-    message = f"أهلاً، أريد طلب هذا المنتج: {product_name} - بسعر: {product_price} درهم"
-    encoded_message = quote(message)
-    return f"https://wa.me/{phone_number}?text={encoded_message}"
-
-@app.context_processor
-def utility_processor():
-    return dict(get_whatsapp_link=get_whatsapp_link)
 
 # الصفحة الرئيسية
 @app.route('/')
@@ -174,6 +162,23 @@ def admin_products():
     
     return render_template('admin/products.html', products=products)
 
+# حذف منتج
+@app.route('/admin/products/delete/<int:product_id>', methods=['POST'])
+@admin_required
+def delete_product(product_id):
+    product = Product.query.get_or_404(product_id)
+    
+    # حذف صورة المنتج إذا لم تكن الصورة الافتراضية
+    if product.image != 'default.jpg':
+        image_path = os.path.join(app.config['UPLOAD_FOLDER'], product.image)
+        if os.path.exists(image_path):
+            os.remove(image_path)
+    
+    db.session.delete(product)
+    db.session.commit()
+    flash('تم حذف المنتج بنجاح', 'success')
+    return redirect(url_for('admin_products'))
+
 # تسجيل الخروج
 @app.route('/admin/logout')
 def admin_logout():
@@ -182,20 +187,16 @@ def admin_logout():
     return redirect(url_for('index'))
 
 # تهيئة قاعدة البيانات وإنشاء مستخدم مسؤول افتراضي
+@app.before_request
 def create_tables():
-    with app.app_context():
-        db.create_all()
-        
-        # إنشاء مستخدم مسؤول افتراضي إذا لم يكن موجوداً
-        if not User.query.filter_by(username='admin').first():
-            admin_user = User(username='admin', is_admin=True)
-            admin_user.set_password('Fatiha123@#')
-            db.session.add(admin_user)
-            db.session.commit()
-            print("تم إنشاء المستخدم المسؤول الافتراضي")
-
-# إنشاء الجداول عند بدء التشغيل
-create_tables()
+    db.create_all()
+    
+    # إنشاء مستخدم مسؤول افتراضي إذا لم يكن موجوداً
+    if not User.query.filter_by(username='admin').first():
+        admin_user = User(username='admin', is_admin=True)
+        admin_user.set_password('admin123')
+        db.session.add(admin_user)
+        db.session.commit()
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))

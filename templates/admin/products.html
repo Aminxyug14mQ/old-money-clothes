@@ -1,95 +1,307 @@
-{% extends "base.html" %}
-
-{% block content %}
-<section class="container" style="margin-top: 100px; padding: 20px;">
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-bottom: 60px;">
-        <!-- صورة المنتج -->
-        <div>
-            <img src="{{ url_for('static', filename='uploads/' + product.image) }}" 
-                 alt="{{ product.name }}" 
-                 style="width: 100%; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
-        </div>
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إدارة المنتجات - Old Money Clothes</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --accent-color: #e74c3c;
+            --light-color: #ecf0f1;
+        }
         
-        <!-- معلومات المنتج -->
-        <div>
-            <h1 style="font-size: 28px; margin-bottom: 15px; color: var(--primary-color);">{{ product.name }}</h1>
-            <p style="color: #777; margin-bottom: 20px;">{{ product.category }}</p>
+        body {
+            background-color: #f5f7fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .sidebar {
+            background-color: var(--primary-color);
+            color: white;
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            right: 0;
+            padding-top: 20px;
+        }
+        
+        .sidebar .nav-link {
+            color: rgba(255, 255, 255, 0.8);
+            padding: 12px 20px;
+            margin: 5px 0;
+            border-radius: 5px;
+            transition: all 0.3s;
+        }
+        
+        .sidebar .nav-link:hover, 
+        .sidebar .nav-link.active {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+        
+        .main-content {
+            margin-right: 250px;
+            padding: 20px;
+        }
+        
+        .card {
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+        
+        .btn-primary {
+            background-color: var(--secondary-color);
+            border-color: var(--secondary-color);
+        }
+        
+        .btn-danger {
+            background-color: var(--accent-color);
+            border-color: var(--accent-color);
+        }
+        
+        .alert {
+            border-radius: 8px;
+            border: none;
+        }
+        
+        .product-img {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 5px;
+        }
+        
+        .table th {
+            background-color: var(--light-color);
+            font-weight: 600;
+        }
+        
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 100%;
+                height: auto;
+                position: relative;
+            }
             
-            <div style="display: flex; align-items: center; margin-bottom: 20px;">
-                <span style="font-size: 24px; font-weight: 700; color: var(--secondary-color);">
-                    {{ product.price }} درهم
-                </span>
-                {% if product.old_price %}
-                <span style="font-size: 18px; color: #999; text-decoration: line-through; margin-left: 15px;">
-                    {{ product.old_price }} درهم
-                </span>
-                {% endif %}
+            .main-content {
+                margin-right: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- الشريط الجانبي -->
+            <div class="col-md-3 col-lg-2 sidebar">
+                <h4 class="text-center mb-4">لوحة التحكم</h4>
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('admin_dashboard') }}">
+                            <i class="fas fa-tachometer-alt me-2"></i>لوحة التحكم
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="{{ url_for('admin_products') }}">
+                            <i class="fas fa-box me-2"></i>إدارة المنتجات
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('admin_logout') }}">
+                            <i class="fas fa-sign-out-alt me-2"></i>تسجيل الخروج
+                        </a>
+                    </li>
+                </ul>
             </div>
-            
-            <div style="margin-bottom: 30px;">
-                <h3 style="margin-bottom: 10px;">الوصف:</h3>
-                <p style="line-height: 1.8;">{{ product.description }}</p>
-            </div>
-            
-            <div style="display: flex; gap: 15px; flex-wrap: wrap;">
-                <button class="btn" style="flex: 1;">أضف إلى السلة</button>
-                <a href="https://wa.me/2126322566568?text={{ ('أهلاً، أريد طلب هذا المنتج: ' + product.name + ' - بسعر: ' + product.price|string + ' درهم') | urlencode }}" 
-                   class="btn" 
-                   style="background-color: #25D366; display: flex; align-items: center; justify-content: center; gap: 8px;"
-                   target="_blank">
-                    <span style="font-size: 20px;">📱</span>
-                    اطلب عبر واتساب
-                </a>
-                <button class="btn btn-outline">المفضلة</button>
-            </div>
-            
-            <div style="margin-top: 30px; padding: 20px; background-color: #f8f9fa; border-radius: 8px;">
-                <h3 style="margin-bottom: 10px;">معلومات الشحن:</h3>
-                <p>✓ التوصيل خلال 2-3 أيام عمل</p>
-                <p>✓ إرجاع مجاني خلال 14 يوم</p>
-                <p>✓ الدفع عند الاستلام متاح</p>
-                <p style="margin-top: 10px; font-weight: 600; color: var(--secondary-color);">
-                    للعملاء في طنجة: اطلب الآن عبر واتساب وسنقوم بالتوصيل خلال 24 ساعة
-                </p>
-            </div>
-        </div>
-    </div>
-    
-    <!-- المنتجات ذات الصلة -->
-    {% if related_products %}
-    <div class="section-title">
-        <h2>منتجات ذات صلة</h2>
-    </div>
-    
-    <div class="products-grid">
-        {% for related in related_products %}
-        <div class="product-card">
-            <div class="product-image">
-                <img src="{{ url_for('static', filename='uploads/' + related.image) }}" alt="{{ related.name }}">
-            </div>
-            <div class="product-info">
-                <h3>{{ related.name }}</h3>
-                <p style="color: #777; font-size: 14px; margin-bottom: 10px;">{{ related.category }}</p>
-                <div class="product-price">
-                    <span class="current-price">{{ related.price }} درهم</span>
-                    {% if related.old_price %}
-                    <span class="old-price">{{ related.old_price }} درهم</span>
-                    {% endif %}
-                </div>
-                <div style="display: flex; flex-direction: column; gap: 10px;">
-                    <a href="{{ url_for('product_detail', product_id=related.id) }}" class="btn btn-outline">عرض التفاصيل</a>
-                    <a href="https://wa.me/2126322566568?text={{ ('أهلاً، أريد طلب هذا المنتج: ' + related.name + ' - بسعر: ' + related.price|string + ' درهم') | urlencode }}" 
-                       class="btn" 
-                       style="background-color: #25D366; display: flex; align-items: center; justify-content: center; gap: 5px; padding: 8px;"
-                       target="_blank">
-                        <span style="font-size: 16px;">📱</span>
-                        طلب سريع
+
+            <!-- المحتوى الرئيسي -->
+            <div class="col-md-9 col-lg-10 main-content">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2>إدارة المنتجات</h2>
+                    <a href="#addProductModal" class="btn btn-primary" data-bs-toggle="modal">
+                        <i class="fas fa-plus me-1"></i>إضافة منتج جديد
                     </a>
                 </div>
+
+                <!-- رسائل التنبيه -->
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ 'danger' if category == 'error' else 'success' }} alert-dismissible fade show">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+
+                <!-- جدول المنتجات -->
+                <div class="card">
+                    <div class="card-body">
+                        {% if products.items %}
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>الصورة</th>
+                                            <th>اسم المنتج</th>
+                                            <th>السعر</th>
+                                            <th>الفئة</th>
+                                            <th>الحالة</th>
+                                            <th>الإجراءات</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for product in products.items %}
+                                            <tr>
+                                                <td>
+                                                    <img src="{{ url_for('static', filename='uploads/' + product.image) }}" 
+                                                         alt="{{ product.name }}" class="product-img">
+                                                </td>
+                                                <td>{{ product.name }}</td>
+                                                <td>{{ product.price }} درهم</td>
+                                                <td>{{ product.category }}</td>
+                                                <td>
+                                                    <span class="badge bg-{{ 'success' if product.in_stock else 'danger' }}">
+                                                        {{ 'متوفر' if product.in_stock else 'غير متوفر' }}
+                                                    </span>
+                                                </td>
+                                                <td>
+                                                    <div class="btn-group">
+                                                        <a href="#" class="btn btn-sm btn-outline-primary">
+                                                            <i class="fas fa-edit"></i>
+                                                        </a>
+                                                        <form action="{{ url_for('delete_product', product_id=product.id) }}" method="POST" class="d-inline">
+                                                            <button type="submit" class="btn btn-sm btn-outline-danger" 
+                                                                    onclick="return confirm('هل أنت متأكد من حذف هذا المنتج؟')">
+                                                                <i class="fas fa-trash"></i>
+                                                            </button>
+                                                        </form>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <!-- الترقيم -->
+                            {% if products.pages > 1 %}
+                                <nav aria-label="Page navigation">
+                                    <ul class="pagination justify-content-center">
+                                        {% if products.has_prev %}
+                                            <li class="page-item">
+                                                <a class="page-link" href="{{ url_for('admin_products', page=products.prev_num) }}">السابق</a>
+                                            </li>
+                                        {% endif %}
+                                        
+                                        {% for page_num in products.iter_pages() %}
+                                            {% if page_num %}
+                                                <li class="page-item {% if page_num == products.page %}active{% endif %}">
+                                                    <a class="page-link" href="{{ url_for('admin_products', page=page_num) }}">{{ page_num }}</a>
+                                                </li>
+                                            {% endif %}
+                                        {% endfor %}
+                                        
+                                        {% if products.has_next %}
+                                            <li class="page-item">
+                                                <a class="page-link" href="{{ url_for('admin_products', page=products.next_num) }}">التالي</a>
+                                            </li>
+                                        {% endif %}
+                                    </ul>
+                                </nav>
+                            {% endif %}
+                        {% else %}
+                            <div class="text-center py-5">
+                                <i class="fas fa-box-open fa-3x text-muted mb-3"></i>
+                                <p class="text-muted">لا توجد منتجات حتى الآن</p>
+                                <a href="#addProductModal" class="btn btn-primary" data-bs-toggle="modal">
+                                    <i class="fas fa-plus me-1"></i>إضافة منتج جديد
+                                </a>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
             </div>
         </div>
-        {% endfor %}
     </div>
-    {% endif %}
-</section>
-{% endblock %}
+
+    <!-- نموذج إضافة منتج -->
+    <div class="modal fade" id="addProductModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">إضافة منتج جديد</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form method="POST" action="{{ url_for('admin_products') }}" enctype="multipart/form-data">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="name" class="form-label">اسم المنتج</label>
+                            <input type="text" class="form-control" id="name" name="name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="description" class="form-label">وصف المنتج</label>
+                            <textarea class="form-control" id="description" name="description" rows="3" required></textarea>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="price" class="form-label">السعر (درهم)</label>
+                                <input type="number" step="0.01" class="form-control" id="price" name="price" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="old_price" class="form-label">السعر القديم (درهم) - اختياري</label>
+                                <input type="number" step="0.01" class="form-control" id="old_price" name="old_price">
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="category" class="form-label">الفئة</label>
+                            <select class="form-select" id="category" name="category" required>
+                                <option value="" selected disabled>اختر الفئة</option>
+                                <option value="رجالي">رجالي</option>
+                                <option value="حريمي">حريمي</option>
+                                <option value="أطفال">أطفال</option>
+                                <option value="إكسسوارات">إكسسوارات</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="image" class="form-label">صورة المنتج</label>
+                            <input type="file" class="form-control" id="image" name="image" accept="image/*">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                        <button type="submit" class="btn btn-primary">إضافة المنتج</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // عرض رسائل التنبيه تلقائياً
+        document.addEventListener('DOMContentLoaded', function() {
+            var alerts = document.querySelectorAll('.alert');
+            alerts.forEach(function(alert) {
+                setTimeout(function() {
+                    var bsAlert = new bootstrap.Alert(alert);
+                    bsAlert.close();
+                }, 5000);
+            });
+            
+            // فتح النموذج إذا كان هناك خطأ في الإرسال
+            {% if request.method == 'POST' and not messages %}
+                var addProductModal = new bootstrap.Modal(document.getElementById('addProductModal'));
+                addProductModal.show();
+            {% endif %}
+        });
+    </script>
+</body>
+</html>
